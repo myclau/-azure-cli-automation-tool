@@ -1,0 +1,88 @@
+{
+    "resourceGroup":{
+        "name":"AutomationTesting",
+        "location":"azurelocationanme",
+        "subscription":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "vnet":{
+            "vpcNumber":"11",
+            "name":"vpc$vpcNumber-$resourceGroupName",
+            "addressPrefix":"10.$vpcNumber.0.0/16",
+            "subnets":[
+                {
+                    "subnetIndex":1,
+                    "name":"Public-$vpcNumber-$subnetIndex",
+                    "nsgname":"RemoteAccess",
+                    "addressPrefix":"10.$vpcNumber.$subnetIndex.0/24"                    
+                },
+                {
+                    "subnetIndex":2,
+                    "name":"Private-$vpcNumber-$subnetIndex",
+                    "nsgname":"PublicToPrivate",
+                    "addressPrefix":"10.$vpcNumber.$subnetIndex.0/24"  
+                }
+            ],
+            "peering":[
+                {
+                    "fromResourceGroupName":"Shared-Service-resourcegroup",
+                    "toResourceGroupName":"$resourceGroupName",
+                    "name":"vpc01-vpc$vpcNumber",
+                    "fromVnetName":"vpc01-shared-service-resourcegroup",
+                    "toVnetName":"$vnetName",
+                    "options":"--allow-forwarded-traffic --allow-gateway-transit --allow-vnet-access"
+                },
+                {
+                    "fromResourceGroupName":"$resourceGroupName",
+                    "toResourceGroupName":"Shared-Service-resourcegroup",
+                    "name":"vpc$vpcNumber-vpc01",
+                    "fromVnetName":"$vnetName",
+                    "toVnetName":"vpc01-shared-service-resourcegroup",
+                    "options":"--allow-forwarded-traffic --allow-vnet-access --use-remote-gateways"
+                }
+            ]
+        },
+        "nsg":[
+            {
+                "name":"RemoteAccess",
+                "rules":[
+                    {
+                        "name":"AllowRemoteAccessHKOffice01",
+                        "priority":"100",
+                        "source":"xxxxxxxxxx/24",
+                        "sourcePort":"*",
+                        "destination":"*",
+                        "destinationPort":"22 3389",
+                        "type":"Inbound",
+                        "protocol":"Tcp"
+                    },
+                    {
+                        "name":"AllowRemoteAccessHKOffice02",
+                        "priority":"101",
+                        "source":"xxxxxxxxxxxxxx/29",
+                        "sourcePort":"*",
+                        "destination":"*",
+                        "destinationPort":"22 3389",
+                        "type":"Inbound",
+                        "protocol":"Tcp"
+                    }
+                    
+                ]
+            },
+            {
+                "name":"PublicToPrivate",
+                "rules":[
+                    {
+                        "name":"AllowAccessFromPublicSubnet",
+                        "priority":"100",
+                        "source":"10.$vpcNumber.1.0/24",
+                        "sourcePort":"*",
+                        "destination":"*",
+                        "destinationPort":"*",
+                        "type":"Inbound",
+                        "protocol":"*"
+                    }
+                ]
+            }
+        ]
+    }
+
+}
